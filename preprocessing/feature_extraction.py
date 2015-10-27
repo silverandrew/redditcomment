@@ -18,10 +18,11 @@ s = os.path.abspath("../data/new_data2.json")
 with open(s)as data_file:
   daa=json.load(data_file)
 
-with open('reddit.csv', 'wb') as csvfile:
+with open('reddit_no_labels.csv', 'wb') as csvfile:
     spamwriter = csv.writer(csvfile, delimiter=' ',
     quotechar='|', quoting=csv.QUOTE_MINIMAL)
-    spamwriter.writerow(['ups', 'author', 'subreddit', 'num_words', 'avg_word_length'])
+    #leave out for python code
+#    spamwriter.writerow(['ups', 'author', 'subreddit', 'num_words', 'avg_word_length'])
 
     for line in daa:
       body=line['body']

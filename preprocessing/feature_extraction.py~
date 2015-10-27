@@ -21,7 +21,8 @@ with open(s)as data_file:
 with open('reddit.csv', 'wb') as csvfile:
     spamwriter = csv.writer(csvfile, delimiter=' ',
     quotechar='|', quoting=csv.QUOTE_MINIMAL)
-    spamwriter.writerow(['ups', 'author', 'subreddit', 'score', 'num_words', 'avg_word_length'])
+    #leave out for python code
+#    spamwriter.writerow(['ups', 'author', 'subreddit', 'num_words', 'avg_word_length'])
 
     for line in daa:
       body=line['body']
@@ -54,12 +55,11 @@ with open('reddit.csv', 'wb') as csvfile:
     
       author = line['author']
       subreddit = line ['subreddit']
-      score = line['score']
     
     #label
     #column 0 
       ups = line['ups']
-      spamwriter.writerow([ups, author, subreddit, score, number_of_words, avg_word_length])
+      spamwriter.writerow([ups, author, subreddit, number_of_words, avg_word_length])
 
 #  if len(list) < 100:
 #    print line['author'],line['subreddit'],line['ups'] 
