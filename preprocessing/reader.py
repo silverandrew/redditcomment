@@ -5,7 +5,11 @@ import os
 #from itertools import islice
 
 datafile = "RC_2015-01"
+#note: you must create this file
+#TODO: create if doesn't exist
 outputfile = "new_data.json"
+
+
 #N = 2
 
 #with open(datafile) as myfile:
@@ -22,12 +26,23 @@ N=1000
 o = open(outputfile, 'r+')
 
 with open(datafile) as f:
-    for i in range(N):
+    i = 0
+#can't use range loop because the bounds of iterator need to change based on # of deleted comments skipped
+#warning: could run outside bounds of data file. TODO: check size?
+    while i < N:
         line=f.next().strip()
-        print line
+
+#Only use comments that don't contain "[deleted]"
+        if line.find("[deleted]") == -1:
+          print line
 #delimit the comments by the new line character
 #TODO: could also use a ,
-        o.write(line + '\n')
+          o.write(line + '\n')
+#increment loop counter, since you added a comment
+          i+=1
+        else:
+          print "deleted entry"
+          continue
 f.close()
 
 o.close()
