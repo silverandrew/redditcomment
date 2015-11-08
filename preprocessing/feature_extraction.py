@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import io
 import os
 import json
@@ -5,6 +6,52 @@ import csv
 import string 
 import nltk
 import gensim
+from itertools import dropwhile
+import postagger
+import sys
+
+"""
+Passive sentence detection kudos to: https://github.com/j-c-h-e-n-g/nltk-passive-voice
+"""
+
+TAGGER = None
+
+def tag_sentence(sent):
+    """Take a sentence as a string and return a list of (word, tag) tuples."""
+    assert isinstance(sent, basestring)
+
+    tokens = nltk.word_tokenize(sent)
+    return TAGGER.tag(tokens)
+
+def passivep(tags):
+    """Takes a list of tags, returns true if we think this is a passive
+    sentence."""
+    # Particularly, if we see a "BE" verb followed by some other, non-BE
+    # verb, except for a gerund, we deem the sentence to be passive.
+    
+    postToBe = list(dropwhile(lambda(tag): not tag.startswith("BE"), tags))
+    nongerund = lambda(tag): tag.startswith("V") and not tag.startswith("VBG")
+
+    filtered = filter(nongerund, postToBe)
+    out = any(filtered)
+
+    return out
+
+punkt = nltk.tokenize.punkt.PunktSentenceTokenizer()
+
+def is_passive(sent, tagged_words):
+    """Given a sentence, tag it and print if we think it's a passive-voice
+    formation."""
+#tagged words from this sentence
+    tagged = tag_sentence(sent)
+#now add to global list so all the tags for this sentence are tracked
+#hack to prevent double-tokenizing words
+    for new_tags in tagged:
+      tagged_words.append(new_tags)
+
+    tags = map( lambda(tup): tup[1], tagged)
+    if passivep(tags):
+      return True
 
 #open json dataset and create a csv file with features and labels
 
@@ -13,6 +60,10 @@ s = os.path.abspath("../data/new_data2.json")
 #print s
 
 #TODO: implement using http://www.nltk.org/book/ch05.html
+
+#Tagger for finding passive sentences
+global TAGGER
+TAGGER = postagger.get_tagger()
 
 with open(s)as data_file:
   daa=json.load(data_file)
@@ -35,9 +86,23 @@ with open('reddit.csv', 'wb') as csvfile:
 
     body=line['body']
     print "ready to tokenize comment"
-    text = nltk.word_tokenize(body)
+#tokenize into sentences to check for passive voice
+    punkt = nltk.tokenize.punkt.PunktSentenceTokenizer()
+    sentences = punkt.tokenize(body)
+    num_passive_sentences = 0
+#fill tag words, pass as reference so we don't need to run twice
+    tagged_words = list()
+    for sent in sentences:
+      if (is_passive(sent, tagged_words)):
+        num_passive_sentences += 1
+#at the end of loop, tagged_words contains all the tagged words from each sentence
+
+#now tokenize words
+#    text = nltk.word_tokenize(body)
     #tagged words
-    tagged_words = nltk.pos_tag(text)
+#    tagged_words = nltk.pos_tag(text)
+
+    print tagged_words
     for tags in tagged_words:
       if tags[1] == "CC":
         pos_frequency[0] += 1
@@ -118,6 +183,7 @@ with open('reddit.csv', 'wb') as csvfile:
    #    print pos_frequency
     print ("done tokenizing comment")
 
+
 #slow, need to do because text is unicode
 #get rid of punctuation
     exclude = set(string.punctuation)
@@ -148,11 +214,14 @@ with open('reddit.csv', 'wb') as csvfile:
 
 #nltk tokenize words
 #      text = nltk.word_tokenize(body)
+
+#NOTE: delimit each new feature added with a "," or it will break svmpredict.py
     
     #label
     #column 0 
     ups = line['ups']
     spamwriter.writerow([ups, ",", number_of_words, ",", 
+    num_passive_sentences, ",",
     pos_frequency[0],",",
     pos_frequency[1],",",
     pos_frequency[2],",",
