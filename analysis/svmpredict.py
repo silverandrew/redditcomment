@@ -6,6 +6,7 @@ from sklearn.cross_validation import train_test_split
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import classification_report
 from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
 
 f = open("../preprocessing/reddit.csv")
 data = np.loadtxt(fname = f, delimiter = ',')
@@ -51,6 +52,9 @@ for score in scores:
   print("The scores are computed on the full evaluation set.")
   print()
   y_true, y_pred = y_test, clf.predict(X_test)
+  print("Accuracy score: ")
+# get the accuracy
+  print accuracy_score(y_true, y_pred)
   print(classification_report(y_true, y_pred))
   print()
 
