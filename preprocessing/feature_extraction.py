@@ -3,6 +3,8 @@ import os
 import json
 import csv
 import string 
+import nltk
+import gensim
 
 #open json dataset and create a csv file with features and labels
 
@@ -19,7 +21,7 @@ with open('reddit.csv', 'wb') as csvfile:
     spamwriter = csv.writer(csvfile, delimiter=' ',
     quotechar='|', quoting=csv.QUOTE_MINIMAL)
     #leave out for python code
-    spamwriter.writerow(['ups', 'author', 'subreddit', 'num_words', 'avg_word_length'])
+#    spamwriter.writerow(['ups', 'num_words', 'avg_word_length'])
 
     for line in daa:
       body=line['body']
@@ -49,10 +51,13 @@ with open('reddit.csv', 'wb') as csvfile:
       #print "Average Word Length:"
       #print avg_word_length
     
-      author = line['author']
-      subreddit = line ['subreddit']
+#      author = line['author']
+#      subreddit = line ['subreddit']
+
+#nltk tokenize words
+#      text = nltk.word_tokenize(body)
     
     #label
     #column 0 
       ups = line['ups']
-      spamwriter.writerow([ups, author, subreddit, number_of_words, avg_word_length])
+      spamwriter.writerow([ups, ",", number_of_words, ",", avg_word_length])

@@ -7,7 +7,7 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import classification_report
 from sklearn.svm import SVC
 
-f = open("../preprocessing/reddit_no_labels.csv")
+f = open("../preprocessing/reddit.csv")
 data = np.loadtxt(fname = f, delimiter = ',')
 #print(data)
 X = data[:, 1:]  # select columns 1 through end
