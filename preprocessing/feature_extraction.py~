@@ -9,6 +9,7 @@ import gensim
 from itertools import dropwhile
 import postagger
 import sys
+import re
 
 """
 Passive sentence detection kudos to: https://github.com/j-c-h-e-n-g/nltk-passive-voice
@@ -86,14 +87,14 @@ with open('reddit.csv', 'wb') as csvfile:
       pos_frequency.append(0)
 
     body=line['body']
-    print "ready to tokenize comment"
+    #print "ready to tokenize comment"
 #tokenize into sentences to check for passive voice
     punkt = nltk.tokenize.punkt.PunktSentenceTokenizer()
     sentences = punkt.tokenize(body)
-    print "sentences"
+    #print "sentences"
     #tagged_sentences = nltk.pos_tag(sentences)
     #print tagged_sentences
-    print sentences
+    #print sentences
     num_passive_sentences = 0
 #fill tag words, pass as reference so we don't need to run twice
     tagged_words = list()
@@ -186,98 +187,125 @@ with open('reddit.csv', 'wb') as csvfile:
    
    #    print(tagged_words)[0]
    #    print pos_frequency
-    print ("done tokenizing comment")
+#    print ("done tokenizing comment")
 
-    print body
+    #print body
 
     #stoplist for excluding words for gensim
     stoplist = set(nltk.corpus.stopwords.words("english"))
 
+#    print "the sentence is: "
+#    print sentences
+
+   #at this point already used sentences data for NLTK NLP, so modify
+   #remove punctuation
+    letters_only_sentence = list()
+    for a_sent in sentences:
+      letters_only = re.sub("[^a-zA-Z]",           # The pattern to search for
+                            " ",                   # The pattern to replace it with
+                            a_sent)  # The text to search
+      letters_only_sentence.append(letters_only)
+      #sentences = ''.join(ch for ch in body if ch not in exclude)
+
+#      print letters_only_sentence
+
 #create text
-    texts = [[word for word in document.lower().split() if word not in stoplist] for document in sentences]
+    texts = [[word for word in document.lower().split() if word not in stoplist] for document in letters_only_sentence]
     dictionary = gensim.corpora.Dictionary(texts)
 #create corpus
     corpus = [dictionary.doc2bow(text) for text in texts]
+
+#whether or not to save this as a data point in file
+    save_feature = True
+# no non-stopwords in comment, then don't save this as a feature
+    for subs in texts:
+      if len(subs) == 0:
+        save_feature = False
+        print "IGNORING FEATURE. MISSING ENOUGH WORDS FOR TOPIC MODELING."
+
 #Latent Dirchlet Analysis on text
-    lda = gensim.models.ldamodel.LdaModel(corpus=corpus, id2word=dictionary, num_topics=5, update_every=1, chunksize=10000, passes=1)
+    if save_feature:
+#      print len(texts)
+      lda = gensim.models.ldamodel.LdaModel(corpus=corpus, id2word=dictionary, num_topics=1, update_every=1, chunksize=10000, passes=1)
+#      print "LDA finished"
+      print lda.print_topics(1)
 
 #output
-    print lda.print_topics(5)
-
+#    print lda.print_topics(5)
 
 #slow, need to do because text is unicode
 #get rid of punctuation
 #TODO: don't need to do twice, already available via nltk
-    exclude = set(string.punctuation)
-    body = ''.join(ch for ch in body if ch not in exclude)
-    
-    #count number of words
-    words = body.split(" ")
-    
-    #number of words
-    #print "Number of words:"
-    number_of_words = len(words)
-    
-    #find # of characters in words
-    sum_of_word_lengths = 0
-    for word in words:
-      num_of_chars = sum(c != ' ' for c in word)
-      sum_of_word_lengths = sum_of_word_lengths + num_of_chars
-      # of chars divided by total # of words
-    
-    avg_word_length = sum_of_word_lengths / len(words)
-    
-    #avg word length of this comment
-      #print "Average Word Length:"
-      #print avg_word_length
-    
-#      author = line['author']
-#      subreddit = line ['subreddit']
-
-#nltk tokenize words
-#      text = nltk.word_tokenize(body)
-
-#NOTE: delimit each new feature added with a "," or it will break svmpredict.py
-    
-    #label
-    #column 0 
-    ups = line['ups']
-    spamwriter.writerow([ups, ",", number_of_words, ",", 
-    num_passive_sentences, ",",
-    pos_frequency[0],",",
-    pos_frequency[1],",",
-    pos_frequency[2],",",
-    pos_frequency[3],",",
-    pos_frequency[4],",",
-    pos_frequency[5],",",
-    pos_frequency[6],",",
-    pos_frequency[7],",",
-    pos_frequency[8],",",
-    pos_frequency[9],",",
-    pos_frequency[10],",",
-    pos_frequency[11],",",
-    pos_frequency[12],",",
-    pos_frequency[13],",",
-    pos_frequency[14],",",
-    pos_frequency[15],",",
-    pos_frequency[16],",",
-    pos_frequency[17],",",
-    pos_frequency[18],",",
-    pos_frequency[19],",",
-    pos_frequency[20],",",
-    pos_frequency[21],",",
-    pos_frequency[22],",",
-    pos_frequency[23],",",
-    pos_frequency[24],",",
-    pos_frequency[25],",",
-    pos_frequency[26],",",
-    pos_frequency[27],",",
-    pos_frequency[28],",",
-    pos_frequency[29],",",
-    pos_frequency[30],",",
-    pos_frequency[31],",",
-    pos_frequency[32],",",
-    pos_frequency[33],",",
-    pos_frequency[34],",",
-    pos_frequency[35],",",
-    avg_word_length])
+      exclude = set(string.punctuation)
+      body = ''.join(ch for ch in body if ch not in exclude)
+      
+      #count number of words
+      words = body.split(" ")
+      
+      #number of words
+      #print "Number of words:"
+      number_of_words = len(words)
+      
+      #find # of characters in words
+      sum_of_word_lengths = 0
+      for word in words:
+        num_of_chars = sum(c != ' ' for c in word)
+        sum_of_word_lengths = sum_of_word_lengths + num_of_chars
+        # of chars divided by total # of words
+      
+      avg_word_length = sum_of_word_lengths / len(words)
+      
+      #avg word length of this comment
+        #print "Average Word Length:"
+        #print avg_word_length
+      
+  #      author = line['author']
+  #      subreddit = line ['subreddit']
+  
+  #nltk tokenize words
+  #      text = nltk.word_tokenize(body)
+  
+  #NOTE: delimit each new feature added with a "," or it will break svmpredict.py
+      
+      #label
+      #column 0 
+      ups = line['ups']
+      spamwriter.writerow([ups, ",", number_of_words, ",", 
+      num_passive_sentences, ",",
+      pos_frequency[0],",",
+      pos_frequency[1],",",
+      pos_frequency[2],",",
+      pos_frequency[3],",",
+      pos_frequency[4],",",
+      pos_frequency[5],",",
+      pos_frequency[6],",",
+      pos_frequency[7],",",
+      pos_frequency[8],",",
+      pos_frequency[9],",",
+      pos_frequency[10],",",
+      pos_frequency[11],",",
+      pos_frequency[12],",",
+      pos_frequency[13],",",
+      pos_frequency[14],",",
+      pos_frequency[15],",",
+      pos_frequency[16],",",
+      pos_frequency[17],",",
+      pos_frequency[18],",",
+      pos_frequency[19],",",
+      pos_frequency[20],",",
+      pos_frequency[21],",",
+      pos_frequency[22],",",
+      pos_frequency[23],",",
+      pos_frequency[24],",",
+      pos_frequency[25],",",
+      pos_frequency[26],",",
+      pos_frequency[27],",",
+      pos_frequency[28],",",
+      pos_frequency[29],",",
+      pos_frequency[30],",",
+      pos_frequency[31],",",
+      pos_frequency[32],",",
+      pos_frequency[33],",",
+      pos_frequency[34],",",
+      pos_frequency[35],",",
+      avg_word_length])
