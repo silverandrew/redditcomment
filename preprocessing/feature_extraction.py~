@@ -56,7 +56,8 @@ def is_passive(sent, tagged_words):
 #open json dataset and create a csv file with features and labels
 
 #input file
-s = os.path.abspath("../data/new_data2.json")
+#s = os.path.abspath("../data/new_data2.json")
+s = os.path.abspath("../data/thousands.json")
 #print s
 
 #TODO: implement using http://www.nltk.org/book/ch05.html
@@ -89,6 +90,10 @@ with open('reddit.csv', 'wb') as csvfile:
 #tokenize into sentences to check for passive voice
     punkt = nltk.tokenize.punkt.PunktSentenceTokenizer()
     sentences = punkt.tokenize(body)
+    print "sentences"
+    #tagged_sentences = nltk.pos_tag(sentences)
+    #print tagged_sentences
+    print sentences
     num_passive_sentences = 0
 #fill tag words, pass as reference so we don't need to run twice
     tagged_words = list()
@@ -183,9 +188,26 @@ with open('reddit.csv', 'wb') as csvfile:
    #    print pos_frequency
     print ("done tokenizing comment")
 
+    print body
+
+    #stoplist for excluding words for gensim
+    stoplist = set(nltk.corpus.stopwords.words("english"))
+
+#create text
+    texts = [[word for word in document.lower().split() if word not in stoplist] for document in sentences]
+    dictionary = gensim.corpora.Dictionary(texts)
+#create corpus
+    corpus = [dictionary.doc2bow(text) for text in texts]
+#Latent Dirchlet Analysis on text
+    lda = gensim.models.ldamodel.LdaModel(corpus=corpus, id2word=dictionary, num_topics=5, update_every=1, chunksize=10000, passes=1)
+
+#output
+    print lda.print_topics(5)
+
 
 #slow, need to do because text is unicode
 #get rid of punctuation
+#TODO: don't need to do twice, already available via nltk
     exclude = set(string.punctuation)
     body = ''.join(ch for ch in body if ch not in exclude)
     
