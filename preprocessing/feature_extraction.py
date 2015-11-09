@@ -193,6 +193,11 @@ with open('reddit.csv', 'wb') as csvfile:
     #stoplist for excluding words for gensim
     stoplist = set(nltk.corpus.stopwords.words("english"))
 
+   #at this point already used sentences data for NLTK NLP, so modify
+   #remove punctuation
+
+   sentences.translate(string.maketrans(string.punctuation, ' '*len(string.punctuation)))
+
 #create text
     texts = [[word for word in document.lower().split() if word not in stoplist] for document in sentences]
     dictionary = gensim.corpora.Dictionary(texts)
