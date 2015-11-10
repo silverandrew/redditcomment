@@ -10,6 +10,7 @@ from itertools import dropwhile
 import postagger
 import sys
 import re
+import numpy as np
 
 """
 Passive sentence detection kudos to: https://github.com/j-c-h-e-n-g/nltk-passive-voice
@@ -228,7 +229,73 @@ with open('reddit.csv', 'wb') as csvfile:
 #      print len(texts)
       lda = gensim.models.ldamodel.LdaModel(corpus=corpus, id2word=dictionary, num_topics=1, update_every=1, chunksize=10000, passes=1)
 #      print "LDA finished"
-      print lda.print_topics(1)
+#      print lda.top_topics(corpus)
+#      ldatopics = lda.show_topics(num_topics = 1, num_words = len(dictionary), formatted = False)
+#
+#      #print ldatopics[10][1]
+#      #print ldatopics[10][1][1]
+#      ldawordindex = {}
+#      for i in range(len(dictionary)):
+#          ldawordindex[ldatopics[0][i][1]] = i
+#
+#      #Doc2Vec initialize
+#      sentences_final = []
+#      for i in range(len(texts)):
+#          string = "SENT_" + str(i)
+#          sentence_final = gensim.models.doc2vec.LabeledSentence(texts[i], tags = [string])
+#          sentences_final.append(sentence_final)
+#      doc2vecmodel = gensim.models.Doc2Vec(sentences_final, size = 100, window = 5, min_count = 0, dm = 1)
+#      print "Initial word vector for word junk:"
+#      #print doc2vecmodel["junk"]
+#
+#      #Replace the word vector with word vectors from LDA
+#      print len(doc2vecmodel.syn0)
+#      index2wordcollection = doc2vecmodel.index2word
+#      print index2wordcollection
+#      print "good so far"
+#      for i in range(len(doc2vecmodel.syn0)):
+#          if index2wordcollection[i].startswith("SENT_"):
+#              continue
+#          print "if good"
+#          wordindex = ldawordindex[index2wordcollection[i]]
+#          print "vectorlda"
+#          wordvectorfromlda = [ldatopics[j][wordindex][0] for j in range(1)]
+#          print "vectorlda"
+#          doc2vecmodel.syn0[i] = wordvectorfromlda
+#      #print doc2vecmodel.index2word[26841]
+#      #doc2vecmodel.syn0[0] = [0 for i in range(100)]
+#      print "Changed word vector for word junk:"
+#      #print doc2vecmodel["junk"]
+#
+#      #Train Doc2Vec
+#      doc2vecmodel.train_words = False 
+#      print "Initial doc vector for 1st document"
+#      #print doc2vecmodel["SENT_0"]
+#      for i in range(50):
+#          print "Round: " + str(i)
+#          doc2vecmodel.train(sentences)
+#      print "Trained doc vector for 1st document"
+#      #print doc2vecmodel["SENT_0"]
+
+
+#for checking vector represenation
+#      model = gensim.models.Word2Vec(sentences, size=100, window=5, min_count=5, workers=4)
+#      for topic in ldatopics[0]:
+#topic 0 is significance, topic 1 is word
+#        v1 = model[topic[0]*topic[1]]
+#        print v1
+
+#how many words per topic is second entry
+# first entry is always 0 since 1 topic per comment
+      #print ldatopics[0][0][1]
+      #print lda[0]
+
+#      wordvectorfromlda = ladatopics[j][0][0] for j in range(n)]
+
+#      print ldatopics
+#      wordvectorfromlda = [ldatopics[j][wordindex][0] for j in range(n)]
+#      print wordvectorfromlda
+      #print lda.print_topics(1)
 
 #output
 #    print lda.print_topics(5)
