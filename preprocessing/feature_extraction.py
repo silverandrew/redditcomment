@@ -20,6 +20,8 @@ Passive sentence detection kudos to: https://github.com/j-c-h-e-n-g/nltk-passive
 
 #note: bucket_ids output file contains which range the upvote corresponds to. I.e., index 1 is the first array in the file, index 2 is the second. If you have a label of 1, then that means that the upvote exists somewhere in the 1st bucket. Since there are a wide variety of possible upvotes, this should help with the sparsity of the dataset.
 
+#note: need to delete bucket_ids file every time running this or it will not update file
+
 TAGGER = None
 
 def split_seq(iterable, size):

@@ -18,7 +18,7 @@ import pprint
 Passive sentence detection kudos to: https://github.com/j-c-h-e-n-g/nltk-passive-voice
 """
 
-#note: bucket_ids output file contains which range the upvote corresponds to. I.e., index 1 is the first array in the file, index 2 is the second. If you have a label of 1, then that means that the upvote exists in the 1st bucket.
+#note: bucket_ids output file contains which range the upvote corresponds to. I.e., index 1 is the first array in the file, index 2 is the second. If you have a label of 1, then that means that the upvote exists somewhere in the 1st bucket. Since there are a wide variety of possible upvotes, this should help with the sparsity of the dataset.
 
 TAGGER = None
 
