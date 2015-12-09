@@ -7,16 +7,27 @@ import string
 import nltk
 import gensim
 from itertools import dropwhile
+import itertools
 import postagger
 import sys
 import re
 import numpy as np
+import pprint
 
 """
 Passive sentence detection kudos to: https://github.com/j-c-h-e-n-g/nltk-passive-voice
 """
 
+#note: bucket_ids output file contains which range the upvote corresponds to. I.e., index 1 is the first array in the file, index 2 is the second. If you have a label of 1, then that means that the upvote exists somewhere in the 1st bucket. Since there are a wide variety of possible upvotes, this should help with the sparsity of the dataset.
+
 TAGGER = None
+
+def split_seq(iterable, size):
+  it = iter(iterable)
+  item = list(itertools.islice(it, size))
+  while item:
+    yield item
+    item = list(itertools.islice(it, size))
 
 def tag_sentence(sent):
     """Take a sentence as a string and return a list of (word, tag) tuples."""
@@ -59,7 +70,7 @@ def is_passive(sent, tagged_words):
 
 #input file
 #s = os.path.abspath("../data/new_data2.json")
-s = os.path.abspath("../data/thousands.json")
+s = os.path.abspath("../data/new_data.json")
 #print s
 
 #TODO: implement using http://www.nltk.org/book/ch05.html
@@ -68,16 +79,57 @@ s = os.path.abspath("../data/thousands.json")
 global TAGGER
 TAGGER = postagger.get_tagger()
 
-with open(s)as data_file:
-  daa=json.load(data_file)
+with open(s, 'r')as data_file:
+#  daa=json.load(data_file)
+#warning: TODO: change so you only open if file exists
+#  csvfile = open('reddit.csv','wb')
 
-with open('reddit.csv', 'wb') as csvfile:
-  spamwriter = csv.writer(csvfile, delimiter=' ',
-  quotechar='|', quoting=csv.QUOTE_MINIMAL)
+#  open('reddit.csv', 'wb') as csvfile
+#  spamwriter = csv.writer(csvfile, delimiter=' ',
+#  quotechar='|', quoting=csv.QUOTE_MINIMAL)
     #leave out for python code
 #    spamwriter.writerow(['ups', 'num_words', 'avg_word_length'])
 
-  for line in daa:
+#find the starting points for different buckets. To calculate variety of upvotes.
+#after you get this, you can partition X number of buckets and identify this as a feature
+  buckets = set();
+
+#first iteration, determine spread of upvotes to determine buckets
+  for eLine in data_file:
+    line = json.loads(eLine)
+    ups = line['ups']
+    buckets.add(ups);
+#  print buckets
+  sorted_unique_upvotes = sorted(buckets)
+#  print sorted_unique_upvotes
+# not all buckets will be equal size because of even/odd behavior
+  print "buckets"
+  up_buckets = list(split_seq(sorted_unique_upvotes, 5));
+  #pprint.pprint(list(split_seq(sorted_unique_upvotes, 5)));
+
+  buckets_file = open("bucket_ids", 'a')
+  for item in up_buckets:
+    buckets_file.write("%s\n" % item)
+  
+#  pprint.pprint(up_buckets);
+
+#now iterate through again capturing additional information.
+#need to re-open file because we're already at the end of it
+
+with open(s, 'r')as data_file:
+#  daa=json.load(data_file)
+#warning: TODO: change so you only open if file exists
+  csvfile = open('reddit.csv','wb')
+
+#  open('reddit.csv', 'wb') as csvfile
+  spamwriter = csv.writer(csvfile, delimiter=' ',
+  quotechar='|', quoting=csv.QUOTE_MINIMAL)
+
+#doing this so you don't have to load the entire dataset at once, just process
+  for eLine in data_file:
+    #print eLine
+    line = json.loads(eLine)
+    #print line
 
 #iterate and fill
 #list of unique tags per comment
@@ -336,8 +388,21 @@ with open('reddit.csv', 'wb') as csvfile:
       
       #label
       #column 0 
+#figure out which # corresponds to the bucket
       ups = line['ups']
-      spamwriter.writerow([ups, ",", number_of_words, ",", 
+#find # in the buckets list
+#go through each of the buckets and see if 
+      bucket_index = 0
+      for index, item in enumerate(up_buckets):
+#        print index, item
+#see if upvote exists in the range, make that index the bucket index
+        if item[0] <= ups <= item[len(item) - 1]:
+#index starts at 0, make it start at 1
+          bucket_index = index + 1
+#          print bucket_index
+# find spot in bucket
+      #buckets.add(ups);
+      spamwriter.writerow([bucket_index, ",", number_of_words, ",", 
       num_passive_sentences, ",",
       pos_frequency[0],",",
       pos_frequency[1],",",
@@ -376,3 +441,8 @@ with open('reddit.csv', 'wb') as csvfile:
       pos_frequency[34],",",
       pos_frequency[35],",",
       avg_word_length])
+#  print buckets
+  #sorted_unique_upvotes = sorted(buckets)
+#  print sorted_unique_upvotes
+# not all buckets will be equal size because of even/odd behavior
+  #pprint.pprint(list(split_seq(sorted_unique_upvotes, 5)));
